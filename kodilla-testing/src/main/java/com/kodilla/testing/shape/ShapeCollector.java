@@ -1,18 +1,11 @@
 package com.kodilla.testing.shape;
-import com.kodilla.testing.shape.ShapeCollector;
 import java.util.ArrayList;
 
 public class ShapeCollector {
-    private String nameOfFigure;
 
-    public ShapeCollector(String nameOfFigure) {
-        this.nameOfFigure = nameOfFigure;
-    }
-
-    private ArrayList<Shape> collectedShapes = new ArrayList<Shape>();
+    private final ArrayList<Shape> collectedShapes = new ArrayList<>();
 
     public void addFigure(Shape shape) {
-        ShapeCollector shapeCollector = new ShapeCollector(nameOfFigure);
         collectedShapes.add(shape);
     }
 
@@ -32,11 +25,16 @@ public class ShapeCollector {
         return null;
     }
     public String showFigures() {
-        return String.valueOf(collectedShapes.size());
-    }
-    public String getNameOfFigure() {
-        return nameOfFigure;
+        StringBuilder result = new StringBuilder();
+        for (Shape shape : collectedShapes) {
+            result.append(shape.getShapeName()).append(" ");
+        }
+        if (result.length() > 2) {
+            result.setLength(result.length() - 1);
+        }
+        return result.toString();
     }
 }
+
 
 
