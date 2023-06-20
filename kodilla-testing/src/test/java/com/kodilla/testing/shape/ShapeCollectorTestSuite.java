@@ -46,7 +46,7 @@ public class ShapeCollectorTestSuite {
     }
 
     @Test
-    void testShowFigures() {
+    void testShowFigure() {
         //Given
         ShapeCollector shapeCollector = new ShapeCollector();
 
@@ -60,7 +60,7 @@ public class ShapeCollectorTestSuite {
         shapeCollector.addFigure(square);
 
         //Then
-        Assertions.assertEquals("triangle circle square",shapeCollector.showFigures());
+        Assertions.assertEquals("triangle circle square",shapeCollector.showFigure());
 
     }
 
