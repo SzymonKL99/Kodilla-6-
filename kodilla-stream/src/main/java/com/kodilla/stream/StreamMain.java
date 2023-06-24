@@ -1,34 +1,25 @@
 package com.kodilla.stream;
-import com.kodilla.stream.beautifier.PoemBeautifier;
-import com.kodilla.stream.beautifier.PoemDecorator;
-import com.kodilla.stream.iterate.NumbersGenerator;
+import com.kodilla.stream.forumuser.ForumUser;
+import com.kodilla.stream.forumuser.Forum;
+
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class StreamMain {
 
     public static void main(String[] args) {
-        PoemBeautifier poemBeautifier = new PoemBeautifier();
+        Forum theForum = new Forum();
+        Map<Integer, ForumUser> theResultMapOfUsers = theForum.getUserList().stream()
+                .filter(forumUser -> forumUser.getSex() == 'M')
+                .filter(forumUser -> forumUser.getDateOfBirth().isAfter(LocalDate.now().minusYears(20L)) || forumUser.getDateOfBirth().isEqual(LocalDate.now().minusYears(20L)))
+                .filter(forumUser -> forumUser.getNumberOfPosts() > 1)
+                .collect(Collectors.toMap(ForumUser::getUserID, forumUser -> forumUser));
 
-        PoemDecorator abcDecorator = (text) -> "ABC" + text + "ABC";
-        poemBeautifier.beautify("Hello", abcDecorator);
+        System.out.println("# elements: " + theResultMapOfUsers.size());
+        theResultMapOfUsers.entrySet().stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .forEach(System.out::println);
 
-        PoemDecorator uppercaseDecorator = String::toUpperCase;
-        poemBeautifier.beautify("Hello mentor", uppercaseDecorator);
-
-        PoemDecorator exclamationDecorator = (text) -> text + "!!!";
-        poemBeautifier.beautify("Thanks mentor", exclamationDecorator);
-
-        PoemDecorator duplicateDecorator = (text) -> {
-            StringBuilder sb = new StringBuilder();
-            for (char c : text.toCharArray()) {
-                sb.append(c).append(c);
-            }
-            return sb.toString();
-        };
-        poemBeautifier.beautify("Hello", duplicateDecorator);
-
-        System.out.println("Using Stream to generate even numbers from 1 to 20");
-        NumbersGenerator.generateEven(20);
     }
-
-
 }
