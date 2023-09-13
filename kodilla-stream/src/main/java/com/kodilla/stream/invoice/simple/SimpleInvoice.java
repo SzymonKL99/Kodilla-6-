@@ -2,7 +2,6 @@ package com.kodilla.stream.invoice.simple;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class SimpleInvoice {
 
@@ -18,6 +17,7 @@ public final class SimpleInvoice {
 
     public double getValueToPay() {
         return items.stream()
-                .collect(Collectors.summingDouble(SimpleItem::getValue));
+                .mapToDouble(SimpleItem::getValue)
+                .sum();
     }
 }
