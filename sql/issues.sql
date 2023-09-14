@@ -42,3 +42,25 @@ INSERT INTO ISSUES (ISSUESLIST_ID, SUMMARY, DESCRIPTION, USER_ID_ASSIGNEDTO) VAL
                                                                                  (3, 'Zadanie 13', 'Opis zadania 13', 3),
                                                                                  (3, 'Zadanie 14', 'Opis zadania 14', 2),
                                                                                  (3, 'Zadanie 15', 'Opis zadania 15', 1);
+
+SELECT ID, LASTNAME FROM USERS;
+SELECT ID, FIRSTNAME FROM USERS
+WHERE (ID >= 4 AND ID <= 10)
+OR ID = 1;
+SELECT COUNT(*) FROM users;
+SELECT MIN(ID), MAX(ID) FROM users;
+SELECT SUM(ID) AS TOTAL, AVG(ID) AS AVERAGE FROM USERS;
+SELECT U.FIRSTNAME, U.LASTNAME, P.BODY
+FROM USERS U
+         JOIN POSTS P ON U.ID = P.USER_ID;
+SELECT USER_ID, COUNT(*) AS POSTS_NUMBER
+FROM POSTS
+GROUP BY USER_ID
+HAVING COUNT(*) > 1;
+SELECT U.FIRSTNAME, U.LASTNAME, COUNT(*) AS POSTS_NUMBER
+FROM USERS U JOIN POSTS P ON U.ID = P.USER_ID
+GROUP BY P.USER_ID
+HAVING COUNT(*) > 1
+ORDER BY U.LASTNAME, U.FIRSTNAME;
+
+
