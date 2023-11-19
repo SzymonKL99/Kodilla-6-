@@ -10,7 +10,7 @@ import java.util.List;
 @Table(name = "COMPANIES")
 @NamedNativeQueries({
         @NamedNativeQuery(
-               name = "Company.findByFirstThreeCharacters",
+                name = "Company.findByFirstThreeCharacters",
                 query = "SELECT * FROM COMPANIES WHERE SUBSTRING(COMPANY_NAME, 1, 3) = :characters",
                 resultClass = Company.class
         )

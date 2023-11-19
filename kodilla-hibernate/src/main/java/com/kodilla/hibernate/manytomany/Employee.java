@@ -10,7 +10,7 @@ import java.util.List;
 @Table(name = "EMPLOYEES")
 @NamedQueries({
         @NamedQuery(
-               name = "Employee.findByLastname",
+                name = "Employee.findByLastname",
                 query = "FROM Employee WHERE lastname = :lastname"
         )
 })

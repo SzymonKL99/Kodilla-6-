@@ -2,6 +2,7 @@ package com.kodilla.hibernate.manytomany.dao;
 
 import com.kodilla.hibernate.manytomany.Company;
 import com.kodilla.hibernate.manytomany.Employee;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,51 +21,42 @@ class CompanyDaoTestSuite {
     @Autowired
     private EmployeeDao employeeDao;
 
-    @Test
-    void testSaveManyToMany() {
-        //Given
-        Employee johnSmith = new Employee("John", "Smith");
-        Employee stephanieClarckson = new Employee("Stephanie", "Clarckson");
-        Employee lindaKovalsky = new Employee("Linda", "Kovalsky");
+        @Test
+        void testSaveManyToMany() {
+            //Given
+            Employee adamKowalski = new Employee("Adam", "Kowalski");
+            Employee johnSmith = new Employee("John", "Smith");
+            Employee dawidKlon = new Employee("Dawid", "Klon");
 
-        Company softwareMachine = new Company("Software Machine");
-        Company dataMaesters = new Company("Data Maesters");
-        Company greyMatter = new Company("Grey Matter");
+            Company boshCompany = new Company("Bosh");
+            Company lgCompany = new Company("LG");
+            Company teslaCompany = new Company("Tesla");
 
-        softwareMachine.getEmployees().add(johnSmith);
-        dataMaesters.getEmployees().add(stephanieClarckson);
-        dataMaesters.getEmployees().add(lindaKovalsky);
-        greyMatter.getEmployees().add(johnSmith);
-        greyMatter.getEmployees().add(lindaKovalsky);
+            boshCompany.getEmployees().add(adamKowalski);
+            lgCompany.getEmployees().add(johnSmith);
+            lgCompany.getEmployees().add(dawidKlon);
+            teslaCompany.getEmployees().add(adamKowalski);
+            teslaCompany.getEmployees().add(dawidKlon);
 
-        johnSmith.getCompanies().add(softwareMachine);
-        johnSmith.getCompanies().add(greyMatter);
-        stephanieClarckson.getCompanies().add(dataMaesters);
-        lindaKovalsky.getCompanies().add(dataMaesters);
-        lindaKovalsky.getCompanies().add(greyMatter);
+            adamKowalski.getCompanies().add(boshCompany);
+            adamKowalski.getCompanies().add(teslaCompany);
+            johnSmith.getCompanies().add(lgCompany);
+            dawidKlon.getCompanies().add(lgCompany);
+            dawidKlon.getCompanies().add(teslaCompany);
 
-        //When
-        companyDao.save(softwareMachine);
-        int softwareMachineId = softwareMachine.getId();
-        companyDao.save(dataMaesters);
-        int dataMaestersId = dataMaesters.getId();
-        companyDao.save(greyMatter);
-        int greyMatterId = greyMatter.getId();
+            // When
+            companyDao.save(boshCompany);
+            int boshCompanyId = boshCompany.getId();
+            companyDao.save(lgCompany);
+            int lgCompanyId = lgCompany.getId();
+            companyDao.save(teslaCompany);
+            int teslaCompanyId = teslaCompany.getId();
 
-        //Then
-        assertNotEquals(0, softwareMachineId);
-        assertNotEquals(0, dataMaestersId);
-        assertNotEquals(0, greyMatterId);
-
-        //CleanUp
-        //try {
-        //    companyDao.deleteById(softwareMachineId);
-        //    companyDao.deleteById(dataMaestersId);
-        //    companyDao.deleteById(greyMatterId);
-        //} catch (Exception e) {
-        //    //do nothing
-        //}
-    }
+            // Then
+            assertNotEquals(0, boshCompanyId);
+            assertNotEquals(0, lgCompanyId);
+            assertNotEquals(0, teslaCompanyId);
+        }
     @Test
     public void testFindByFirstThreeCharacters() {
         Company company1 = new Company("ABC Company");
@@ -86,26 +78,31 @@ class CompanyDaoTestSuite {
     @Test
     void testNamedQueries() {
         // Given
-        Employee employee1 = new Employee("John", "Doe");
+        Employee employee1 = new Employee("Adam", "Kowalski");
         Employee employee2 = new Employee("John", "Smith");
-        Employee employee3 = new Employee("Dorota", "Doe");
+        Employee employee3 = new Employee("Dawid", "Klon");
 
         employeeDao.save(employee1);
         employeeDao.save(employee2);
         employeeDao.save(employee3);
 
         // When
-        List<Employee> employeesWithLastnameDoe = employeeDao.findByLastname("Doe");
+        List<Employee> employeesWithLastnameDoe = employeeDao.findByLastname("Kowalski");
 
         // Then
         try {
-            Assertions.assertEquals(2, employeesWithLastnameDoe.size());
-            Assertions.assertEquals("Doe", employeesWithLastnameDoe.get(0).getLastname());
-            Assertions.assertEquals("Doe", employeesWithLastnameDoe.get(1).getLastname());
+            Assertions.assertEquals(1, employeesWithLastnameDoe.size());
+            Assertions.assertEquals("Kowalski", employeesWithLastnameDoe.get(0).getLastname());
+
         } finally {
             // CleanUp
             employeeDao.deleteAll();
         }
+    }
+    @AfterEach
+    void cleanUp() {
+        employeeDao.deleteAll();
+        companyDao.deleteAll();
     }
 
 }
