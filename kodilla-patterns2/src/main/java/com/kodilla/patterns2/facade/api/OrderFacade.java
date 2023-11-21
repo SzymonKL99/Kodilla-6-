@@ -1,21 +1,41 @@
 package com.kodilla.patterns2.facade.api;
 
 import com.kodilla.patterns2.facade.ShopService;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-
+@Aspect
 @Service
+@EnableAspectJAutoProxy
 public class OrderFacade {
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderFacade.class);
     private final ShopService shopService;
-
-    @Autowired
     public OrderFacade(ShopService shopService) {
         this.shopService = shopService;
+    }
+    @Before("execution(* com.kodilla.patterns2.facade.api.OrderFacade.processOrder(..)) && args(order, userId)")
+    public void logBeforeProcessOrder(OrderDto order, Long userId) {
+        LOGGER.info("process Order is called with order: " + order + ", userId: " + userId);
+    }
+
+    @Around("execution(* com.kodilla.patterns2.facade.api.OrderFacade.processOrder(..)) && args(order, userId)")
+    public Object logAroundProcessOrder(ProceedingJoinPoint joinPoint, OrderDto order, Long userId) throws Throwable {
+        Object result;
+        try {
+            result = joinPoint.proceed();
+            LOGGER.info("Process Order execution completed successfully");
+        } catch (Throwable throwable) {
+            LOGGER.error("Error during process Order execution: " + throwable.getMessage());
+            throw throwable;
+        }
+        return result;
     }
     public void processOrder(final OrderDto order, final Long userId) throws OrderProcessingException {
         boolean wasError = false;

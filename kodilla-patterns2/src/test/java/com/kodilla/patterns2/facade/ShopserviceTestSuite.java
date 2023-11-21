@@ -21,6 +21,7 @@ class ShopserviceTestSuite {
     @Test
     void testShopServiceSubmitOrder() {
         long orderId = shopService.openOrder(1L);
+
         System.out.println("Registering new order, ID: " + orderId);
         if (orderId > 0) {
             shopService.addItem(orderId, 10L, 2);
