@@ -1,0 +1,705 @@
+set global log_bin_trust_function_creators=1;
+CREATE TABLE BOOKS (
+                       BOOK_ID int(11) NOT NULL AUTO_INCREMENT,
+                       TITLE varchar(255) NOT NULL,
+                       PUBYEAR int(4) NOT NULL,
+                       PRIMARY KEY (BOOK_ID)
+);
+CREATE TABLE READERS (
+                         READER_ID int(11) NOT NULL AUTO_INCREMENT,
+                         FIRSTNAME varchar(255) NOT NULL,
+                         LASTNAME varchar(255) NOT NULL,
+                         PESELID varchar(11) NOT NULL,
+                         PRIMARY KEY (`READER_ID`)
+);
+CREATE TABLE RENTS (
+                       RENT_ID int(11) NOT NULL AUTO_INCREMENT,
+                       BOOK_ID int(11) NOT NULL,
+                       READER_ID int(11) NOT NULL,
+                       RENT_DATE datetime NOT NULL,
+                       RETURN_DATE datetime,
+                       PRIMARY KEY (RENT_ID),
+                       FOREIGN KEY (BOOK_ID) REFERENCES BOOKS(BOOK_ID),
+                       FOREIGN KEY (READER_ID) REFERENCES READERS(READER_ID)
+);
+INSERT INTO READERS(FIRSTNAME, LASTNAME, PESELID)
+VALUES ('John', 'Smith', '83012217938');
+
+INSERT INTO READERS(FIRSTNAME, LASTNAME, PESELID)
+VALUES ('Curtis', 'Wilson', '75121002790');
+
+INSERT INTO READERS(FIRSTNAME, LASTNAME, PESELID)
+VALUES ('Cathy', 'Booker', '90112801727');
+
+INSERT INTO READERS(FIRSTNAME, LASTNAME, PESELID)
+VALUES ('Marissa', 'Cain', '84061908044');
+
+INSERT INTO READERS(FIRSTNAME, LASTNAME, PESELID)
+VALUES ('Muriel', 'Fulton', '76081409269');
+
+COMMIT;
+
+INSERT INTO BOOKS(TITLE, PUBYEAR)
+VALUES ('The Stranger', 1942);
+
+INSERT INTO BOOKS(TITLE, PUBYEAR)
+VALUES ('In Search of Lost Time', 1927);
+
+INSERT INTO BOOKS(TITLE, PUBYEAR)
+VALUES ('The Trial', 1925);
+
+INSERT INTO BOOKS(TITLE, PUBYEAR)
+VALUES ('The Little Prince', 1943);
+
+INSERT INTO BOOKS(TITLE, PUBYEAR)
+VALUES ('Man`s Fate', 1933);
+
+COMMIT;
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (1, 1, DATE_SUB(CURDATE(), INTERVAL 10 DAY), null);
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (2, 1, DATE_SUB(CURDATE(), INTERVAL 10 DAY), null);
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (4, 1, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY));
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (1, 3, DATE_SUB(CURDATE(), INTERVAL 8 DAY), null);
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (5, 3, DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY));
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (5, 4, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 8 DAY));
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (5, 5, DATE_SUB(CURDATE(), INTERVAL 8 DAY), null);
+
+COMMIT;
+
+DELIMITER $$
+
+CREATE PROCEDURE ListBooks()
+BEGIN
+    SELECT * FROM BOOKS;
+END $$
+
+DELIMITER ;
+
+CALL ListBooks();
+DROP PROCEDURE IF EXISTS ListBooks;
+
+DELIMITER $$
+
+CREATE PROCEDURE ListBooks()
+BEGIN
+    SELECT BOOK_ID, TITLE, PUBYEAR FROM BOOKS;
+END $$
+
+DELIMITER ;
+
+CALL ListBooks();
+
+DROP FUNCTION IF EXISTS VipLevel;
+
+DELIMITER $$
+
+CREATE FUNCTION VipLevel() RETURNS VARCHAR(20) DETERMINISTIC
+BEGIN
+    RETURN 'Standard customer';
+END $$
+
+DELIMITER ;
+
+SELECT VipLevel() AS LEVEL;
+
+DROP FUNCTION IF EXISTS VipLevel;
+
+DELIMITER $$
+
+CREATE FUNCTION VipLevel() RETURNS VARCHAR(20) DETERMINISTIC
+BEGIN
+    DECLARE result VARCHAR(20) DEFAULT 'Standard customer';  -- [1]
+    RETURN result;  -- [2]
+END $$
+
+DELIMITER ;
+
+SELECT VipLevel() AS LEVEL;
+
+DROP FUNCTION IF EXISTS VipLevel;
+
+DELIMITER $$
+
+CREATE FUNCTION VipLevel(booksrented INT) RETURNS VARCHAR(20) DETERMINISTIC -- [1]
+BEGIN									                                    -- [2]
+    DECLARE result VARCHAR(20) DEFAULT 'Standard customer';	                -- [3]
+    IF booksrented >= 10 THEN						                        -- [4]
+        SET result = 'Gold customer';					                        -- [5]
+    ELSEIF booksrented >= 5 AND booksrented < 10 THEN			            -- [6]
+        SET result = 'Silver customer';				                        -- [7]
+    ELSEIF booksrented >= 2 AND booksrented < 5 THEN			            -- [8]
+        SET result = 'Bronze customer';		           		                -- [9]
+    ELSE				      					                                -- [10]
+        SET result = 'Standard customer';				                        -- [11]
+    END IF;				    				                                -- [12]
+    RETURN result;
+END $$
+
+DELIMITER ;
+
+SELECT VipLevel(12) AS LEVEL;
+
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS DisplayUserName;
+
+CREATE PROCEDURE DisplayUserName(IN userID INT)
+BEGIN
+    IF userID <= 0 THEN
+        SELECT 'Invalid ID' AS UserName;
+    ELSE
+        SELECT FIRSTNAME AS UserName
+        FROM READERS
+        WHERE READER_ID = userID;
+    END IF;
+END $$
+
+DELIMITER ;
+
+CALL DisplayUserName(2);
+
+DROP PROCEDURE IF EXISTS DisplayUserName;
+
+
+ALTER TABLE READERS ADD VIP_LEVEL VARCHAR(20);
+
+
+
+DROP PROCEDURE IF EXISTS UpdateVipLevels;
+
+DELIMITER $$
+
+CREATE PROCEDURE UpdateVipLevels()
+BEGIN
+    DECLARE BOOKSREAD INT;
+
+    SELECT COUNT(*) FROM RENTS
+    WHERE READER_ID = 3
+    INTO BOOKSREAD;
+
+    SELECT BOOKSREAD;
+END $$
+
+DELIMITER ;
+
+CALL UpdateVipLevels();
+
+DROP PROCEDURE IF EXISTS UpdateVipLevels;
+
+DELIMITER $$
+
+CREATE PROCEDURE UpdateVipLevels()
+BEGIN
+    DECLARE BOOKSREAD INT;
+    DECLARE DAYS INT;
+
+    SELECT COUNT(*) FROM RENTS
+    WHERE READER_ID = 3
+    INTO BOOKSREAD;
+
+    SELECT DATEDIFF(MAX(RENT_DATE), MIN(RENT_DATE)) + 1 FROM RENTS -- [1]
+    WHERE READER_ID = 3	                                  -- [2]
+    INTO DAYS;                                           -- [3]
+
+    SELECT BOOKSREAD, DAYS;                                    -- [4]
+END $$
+
+DELIMITER ;
+CALL UpdateVipLevels();
+
+DROP PROCEDURE IF EXISTS UpdateVipLevels;
+
+DELIMITER $$
+
+CREATE PROCEDURE UpdateVipLevels()
+BEGIN
+    DECLARE BOOKSREAD INT;
+    DECLARE DAYS INT;
+    DECLARE BOOKSPERMONTH DECIMAL(5,2);
+
+    SELECT COUNT(*) FROM RENTS
+    WHERE READER_ID = 3
+    INTO BOOKSREAD;
+
+    SELECT DATEDIFF(MAX(RENT_DATE), MIN(RENT_DATE)) + 1 FROM RENTS -- [1]
+    WHERE READER_ID = 3	                                  -- [2]
+    INTO DAYS;                                           -- [3]
+
+    SET BOOKSPERMONTH = BOOKSREAD / DAYS * 30;                 -- [4]
+
+    SELECT BOOKSREAD, DAYS, BOOKSPERMONTH;                     -- [5]
+END $$
+
+DELIMITER ;
+
+CALL UpdateVipLevels();
+
+DROP PROCEDURE IF EXISTS UpdateVipLevels;
+
+DELIMITER $$
+
+CREATE PROCEDURE UpdateVipLevels()
+BEGIN
+    DECLARE BOOKSREAD, DAYS, RDR_ID INT;				 -- [1]
+    DECLARE BOOKSPERMONTH DECIMAL(5,2);				 -- [2]
+    DECLARE FINISHED INT DEFAULT 0;			   	     -- [3]
+    DECLARE ALL_READERS CURSOR FOR SELECT READER_ID FROM READERS;        -- [4]
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET FINISHED = 1;	            -- [5]
+    OPEN ALL_READERS;			   		         	 -- [6]
+    WHILE (FINISHED = 0) DO			   		         -- [7]
+    FETCH ALL_READERS INTO RDR_ID;			   	 -- [8]
+    IF (FINISHED = 0) THEN			   		     -- [9]
+        SELECT COUNT(*) FROM RENTS			   	     -- [10]
+        WHERE READER_ID = RDR_ID			     -- [11]
+        INTO BOOKSREAD;			   		     -- [12]
+
+        SELECT DATEDIFF(MAX(RENT_DATE), MIN(RENT_DATE)) + 1 FROM RENTS -- [13]
+        WHERE READER_ID = RDR_ID                           		    -- [14]
+        INTO DAYS;                                       	    -- [15]
+
+        SET BOOKSPERMONTH = BOOKSREAD / DAYS * 30;              	    -- [16]
+
+        UPDATE READERS SET VIP_LEVEL = VipLevel(BOOKSPERMONTH)		    -- [17]
+        WHERE READER_ID = RDR_ID;			   		                -- [18]
+        COMMIT;			   				                            -- [19]
+    END IF;			   					                            -- [20]
+        END WHILE;			   					                            -- [21]
+
+    CLOSE ALL_READERS;   			   			                        -- [22]
+END $$
+
+DELIMITER ;
+
+CALL UpdateVipLevels();
+
+SELECT * FROM READERS;
+
+ALTER TABLE BOOKS ADD COLUMN BESTSELLERS BOOLEAN DEFAULT 0;
+
+DROP PROCEDURE IF EXISTS UpdateBestsellers;
+
+DELIMITER $$
+
+CREATE PROCEDURE UpdateBestsellers()
+BEGIN
+    DECLARE BOOK_ID_VAR INT;
+    DECLARE BOOK_RENT_COUNT INT;
+
+    SELECT MIN(BOOK_ID) INTO BOOK_ID_VAR FROM BOOKS;
+
+    WHILE BOOK_ID_VAR IS NOT NULL DO
+            SELECT COUNT(*) INTO BOOK_RENT_COUNT
+            FROM RENTS
+            WHERE BOOK_ID = BOOK_ID_VAR;
+
+            UPDATE BOOKS
+            SET BESTSELLERS = BOOK_RENT_COUNT > 2
+            WHERE BOOK_ID = BOOK_ID_VAR;
+
+            SELECT MIN(BOOK_ID) INTO BOOK_ID_VAR
+            FROM BOOKS
+            WHERE BOOK_ID > BOOK_ID_VAR;
+        END WHILE;
+END $$
+
+DELIMITER ;
+
+CALL UpdateBestsellers();
+
+SELECT * FROM BOOKS;
+
+SELECT * FROM READERS;
+
+GRANT ALL PRIVILEGES ON kodilla_course.* to kodilla_user;
+
+SET @RENTSQTY = 0;                                 -- [1]
+
+DELIMITER $$
+
+CREATE TRIGGER RENTSCOUNTER BEFORE INSERT ON RENTS -- [2]
+    FOR EACH ROW
+BEGIN
+    SET @RENTSQTY = @RENTSQTY + 1;                  -- [3]
+END $$
+
+DELIMITER ;
+
+SELECT @RENTSQTY;
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES(1, 3, DATE_SUB(CURDATE(), INTERVAL 5 DAY), NULL);
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES(2, 3, DATE_SUB(CURDATE(), INTERVAL 2 DAY), NULL);
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES(3, 1, DATE_SUB(CURDATE(), INTERVAL 5 DAY), NULL);
+
+INSERT INTO RENTS(BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES(2, 4, DATE_SUB(CURDATE(), INTERVAL 3 DAY), NULL);
+
+COMMIT;
+
+SELECT @RENTSQTY;
+
+DROP TRIGGER RENTSCOUNTER;
+
+CREATE TABLE RENTS_AUD (
+                           EVENT_ID INT(11) NOT NULL AUTO_INCREMENT,
+                           EVENT_DATE DATETIME NOT NULL,
+                           EVENT_TYPE VARCHAR(10) DEFAULT NULL,
+                           RENT_ID INT(11) NOT NULL,
+                           OLD_BOOK_ID INT(11),
+                           NEW_BOOK_ID INT(11),
+                           OLD_READER_ID INT(11),
+                           NEW_READER_ID INT(11),
+                           OLD_RENT_DATE DATETIME,
+                           NEW_RENT_DATE DATETIME,
+                           OLD_RETURN_DATE DATETIME,
+                           NEW_RETURN_DATE DATETIME,
+                           PRIMARY KEY (EVENT_ID)
+);
+
+DELIMITER $$
+
+CREATE TRIGGER RENTS_INSERT AFTER INSERT ON RENTS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO RENTS_AUD (EVENT_DATE, EVENT_TYPE, RENT_ID, NEW_BOOK_ID, NEW_READER_ID,
+                           NEW_RENT_DATE, NEW_RETURN_DATE)
+        VALUE(CURTIME(), 'INSERT', NEW.RENT_ID, NEW.BOOK_ID, NEW.READER_ID, NEW.RENT_DATE,
+              NEW.RETURN_DATE);
+END $$
+
+DELIMITER ;
+
+INSERT INTO RENTS (BOOK_ID, READER_ID, RENT_DATE, RETURN_DATE)
+VALUES (2, 4, DATE_SUB(CURDATE(), INTERVAL 5 DAY), NULL);
+
+COMMIT;
+
+SELECT * FROM RENTS_AUD;
+
+DELIMITER $$
+
+CREATE TRIGGER RENTS_DELETE AFTER DELETE ON RENTS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO RENTS_AUD (EVENT_DATE, EVENT_TYPE, RENT_ID)
+        VALUE(CURTIME(), 'DELETE', OLD.RENT_ID);
+END $$
+
+DELIMITER ;
+
+DELETE FROM RENTS WHERE RENT_ID = 12;
+
+COMMIT;
+
+SELECT * FROM RENTS_AUD;
+
+DELIMITER $$
+
+CREATE TRIGGER RENTS_UPDATE AFTER UPDATE ON RENTS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO RENTS_AUD (EVENT_DATE, EVENT_TYPE, RENT_ID, NEW_BOOK_ID, NEW_READER_ID,
+                           NEW_RENT_DATE, NEW_RETURN_DATE, OLD_BOOK_ID, OLD_READER_ID,
+                           OLD_RENT_DATE, OLD_RETURN_DATE)
+        VALUE(CURTIME(), 'UPDATE', OLD.RENT_ID, NEW.BOOK_ID, NEW.READER_ID,
+              NEW.RENT_DATE, NEW.RETURN_DATE, OLD.BOOK_ID, OLD.READER_ID,
+              OLD.RENT_DATE, OLD.RETURN_DATE);
+END $$
+
+DELIMITER ;
+
+UPDATE RENTS SET RETURN_DATE = CURDATE()
+WHERE RENT_ID = 11;
+
+COMMIT;
+
+SELECT * FROM RENTS_AUD;
+
+CREATE TABLE BOOKS_AUD (
+                           EVENT_ID INT(11) NOT NULL AUTO_INCREMENT,
+                           EVENT_DATE DATETIME NOT NULL,
+                           EVENT_TYPE VARCHAR(10) DEFAULT NULL,
+                           BOOK_ID INT(11) NOT NULL,
+                           OLD_TITLE VARCHAR(255),
+                           NEW_TITLE VARCHAR(255),
+                           OLD_PUBYEAR INT(4),
+                           NEW_PUBYEAR INT(4),
+                           PRIMARY KEY (EVENT_ID)
+);
+
+CREATE TABLE READERS_AUD (
+                             EVENT_ID INT(11) NOT NULL AUTO_INCREMENT,
+                             EVENT_DATE DATETIME NOT NULL,
+                             EVENT_TYPE VARCHAR(10) DEFAULT NULL,
+                             READER_ID INT(11) NOT NULL,
+                             OLD_FIRSTNAME VARCHAR(255),
+                             NEW_FIRSTNAME VARCHAR(255),
+                             OLD_LASTNAME VARCHAR(255),
+                             NEW_LASTNAME VARCHAR(255),
+                             OLD_PESELID VARCHAR(11),
+                             NEW_PESELID VARCHAR(11),
+                             PRIMARY KEY (EVENT_ID)
+);
+
+DELIMITER $$
+
+CREATE TRIGGER BOOKS_INSERT AFTER INSERT ON BOOKS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO BOOKS_AUD (EVENT_DATE, EVENT_TYPE, BOOK_ID, NEW_TITLE, NEW_PUBYEAR)
+    VALUES (CURTIME(), 'INSERT', NEW.BOOK_ID, NEW.TITLE, NEW.PUBYEAR);
+END $$
+
+DELIMITER ;
+
+
+SELECT * FROM BOOKS_AUD;
+
+DELIMITER $$
+
+CREATE TRIGGER BOOKS_DELETE AFTER DELETE ON BOOKS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO BOOKS_AUD (EVENT_DATE, EVENT_TYPE, BOOK_ID)
+        VALUE(CURTIME(), 'DELETE', OLD.BOOK_ID);
+END $$
+
+DELIMITER ;
+
+DELETE FROM BOOKS WHERE BOOK_ID= 6;
+
+COMMIT ;
+
+DELIMITER $$
+
+CREATE TRIGGER BOOKS_UPDATE AFTER UPDATE ON BOOKS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO BOOKS_AUD (EVENT_DATE, EVENT_TYPE, BOOK_ID, OLD_TITLE, NEW_TITLE, OLD_PUBYEAR, NEW_PUBYEAR)
+        VALUE (CURTIME(), 'UPDATE', OLD.BOOK_ID, OLD_TITLE, NEW_TITLE, OLD_PUBYEAR, NEW_PUBYEAR);
+END $$
+
+DELIMITER ;
+
+UPDATE BOOKS SET PUBYEAR = 2024, TITLE = 'New title 2024'
+WHERE BOOK_ID = 5;
+
+COMMIT ;
+
+SELECT * FROM BOOKS_AUD;
+
+DROP TABLE READERS_AUD;
+
+CREATE TABLE READERS_AUD (
+    EVENT_ID INT(11) NOT NULL AUTO_INCREMENT,
+    EVENT_DATE DATETIME NOT NULL,
+    EVENT_TYPE VARCHAR(10) DEFAULT NULL,
+    READER_ID INT(11) NOT NULL,
+    OLD_FIRSTNAME VARCHAR(255),
+    NEW_FIRSTNAME VARCHAR(255),
+    OLD_LASTNAME VARCHAR(255),
+    NEW_LASTNAME VARCHAR(255),
+    OLD_PESELID VARCHAR(11),
+    NEW_PESELID VARCHAR(11),
+    PRIMARY KEY (EVENT_ID)
+);
+
+DELIMITER $$
+CREATE TRIGGER READERS_INSERT AFTER INSERT ON READERS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO READERS_AUD (EVENT_DATE, EVENT_TYPE, READER_ID, NEW_FIRSTNAME, NEW_LASTNAME, NEW_PESELID)
+    VALUES (CURTIME(), 'INSERT', NEW.READER_ID, NEW.FIRSTNAME, NEW.LASTNAME, NEW.PESELID);
+END $$
+DELIMITER ;
+
+INSERT INTO READERS (READER_ID, FIRSTNAME, LASTNAME, PESELID)
+    VALUE (6, 'Adam', 'Kowlaski', 97030403763);
+
+COMMIT ;
+
+DELIMITER $$
+CREATE TRIGGER READERS_DELETE AFTER DELETE ON READERS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO READERS_AUD (EVENT_DATE, EVENT_TYPE, READER_ID, OLD_FIRSTNAME, OLD_LASTNAME, OLD_PESELID)
+    VALUES (CURTIME(), 'DELETE', OLD.READER_ID, OLD.FIRSTNAME, OLD.LASTNAME, OLD.PESELID);
+END $$
+DELIMITER ;
+
+DELETE FROM READERS WHERE READER_ID = 6;
+
+COMMIT ;
+
+DELIMITER $$
+CREATE TRIGGER READERS_UPDATE AFTER UPDATE ON READERS
+    FOR EACH ROW
+BEGIN
+    INSERT INTO READERS_AUD (EVENT_DATE, EVENT_TYPE, READER_ID,
+                             OLD_FIRSTNAME, NEW_FIRSTNAME, OLD_LASTNAME, NEW_LASTNAME,
+                             OLD_PESELID, NEW_PESELID)
+    VALUES (CURTIME(), 'UPDATE', OLD.READER_ID,
+            OLD.FIRSTNAME, NEW.FIRSTNAME, OLD.LASTNAME, NEW.LASTNAME,
+            OLD.PESELID, NEW.PESELID);
+END $$
+DELIMITER ;
+
+UPDATE READERS SET LASTNAME = 'Smith'
+WHERE READER_ID = 4;
+
+DROP VIEW IF EXISTS BOOKS_AND_READERS;
+
+CREATE VIEW BOOKS_AND_READERS AS
+SELECT RD.READER_ID, RD.FIRSTNAME, RD.LASTNAME, BK.TITLE
+FROM READERS RD
+         JOIN RENTS RT ON RD.READER_ID = RT.READER_ID
+         JOIN BOOKS BK ON RT.BOOK_ID = BK.BOOK_ID
+ORDER BY RT.RENT_DATE;
+
+
+SELECT * FROM BOOKS_AND_READERS;
+
+SHOW PROCESSLIST;
+
+USE kodilla_course;
+
+CREATE EVENT UPDATE_VIPS
+ON SCHEDULE EVERY 1 MINUTE
+DO CALL UpdateVipLevels();
+
+SHOW PROCESSLIST;
+
+UPDATE READERS SET VIP_LEVEL = 'Not set'
+WHERE READER_ID = 1;
+
+SELECT * FROM READERS;
+
+UPDATE READERS
+SET VIP_LEVEL = 'Not set';
+
+DROP EVENT UPDATE_VIPS;
+
+CREATE TABLE STATS (
+    STAT_ID INT(11) AUTO_INCREMENT PRIMARY KEY,
+        STAT_DATE DATETIME NOT NULL,
+        STAT VARCHAR(20) NOT NULL,
+        VALUE INT(11) NOT NULL
+);
+
+CREATE VIEW BESTSELLERS_COUNT AS
+SELECT COUNT(*) AS BestsellersCount
+FROM BOOKS
+WHERE BESTSELLERS = 1;
+
+USE kodilla_course;
+
+CREATE EVENT IF NOT EXISTS UpdateBestsellersEvent
+    ON SCHEDULE EVERY 1 MINUTE
+    DO
+    BEGIN
+        DECLARE bestsellersCount INT;
+
+        CALL UpdateBestsellers();
+
+        SELECT BestsellersCount INTO bestsellersCount
+        FROM BESTSELLERS_COUNT;
+
+        INSERT INTO STATS (STAT_DATE, STAT, VALUE)
+        VALUES (NOW(), 'BESTSELLERS', bestsellersCount);
+    END;
+
+DROP EVENT UpdateBestsellersEvent;
+COMMIT;
+
+
+CREATE TABLE PHONES (
+                        PHONE_ID INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                        PHONENUM INT(9),
+                        FIRSTNAME VARCHAR(50),
+                        LASTNAME VARCHAR(50)
+);
+
+DELIMITER $$
+
+CREATE PROCEDURE FillTestData()
+BEGIN
+    DECLARE K INT DEFAULT 0;
+    WHILE (K < 100000) DO
+            INSERT INTO PHONES (PHONENUM,
+                                FIRSTNAME,
+                                LASTNAME)
+            VALUES(ROUND(RAND()*1000000000),
+                   CONCAT('Firstname number ', K),
+                   CONCAT('Lastname number ', K));
+            IF (MOD(K, 5000) = 0) THEN
+                COMMIT;
+            END IF;
+            SET K = K + 1;
+        END WHILE;
+    COMMIT;
+END $$
+
+DELIMITER ;
+
+
+CREATE TABLE PHONESTATS (
+                            ID INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                            RANGE_FROM INT(11),
+                            RANGE_TO INT(11),
+                            QUANTITY INT(11)
+);
+
+DELIMITER $$
+
+CREATE PROCEDURE CalcPhoneStats()
+BEGIN
+    DECLARE K INT(11) DEFAULT 0;
+    DECLARE QTY INT(11);
+    DELETE FROM PHONESTATS;                                    -- [1]
+    COMMIT;
+    WHILE (K < 100000000) DO
+            SELECT COUNT(*)                                         -- [2]
+            FROM PHONES                                         -- [3]
+            WHERE PHONENUM BETWEEN K-99999 AND K                    -- [4]
+            INTO QTY;                                           -- [5]
+            INSERT INTO PHONESTATS (RANGE_FROM, RANGE_TO, QUANTITY) -- [6]
+            VALUES (K-99999, K, QTY);                           -- [7]
+            COMMIT;
+            SET K = K + 100000;                                     -- [8]
+        END WHILE;
+END $$
+
+DELIMITER ;
+
+SELECT * FROM PHONESTATS;
+
+
+CREATE INDEX PHONENO ON PHONES (PHONENUM);
+
+
+
+CREATE INDEX idx_title ON BOOKS (TITLE);
+
+CREATE INDEX idx_firstname ON READERS (FIRSTNAME);
+CREATE INDEX idx_lastname ON READERS (LASTNAME);
+
+EXPLAIN SELECT * FROM READERS WHERE FIRSTNAME = 'John';
+
+EXPLAIN SELECT * FROM BOOKS WHERE TITLE = 'The Stranger';
